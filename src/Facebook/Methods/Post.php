@@ -148,7 +148,7 @@ trait Post
 			throw new \Exception("Cannot find structured_composer_async_container!");
 		}
 
-		if (!preg_match_all("/<.+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\"/", $m[1], $m)) {
+		if (!preg_match_all("/<[^>]+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\"/", $m[1], $m)) {
 			throw new \Exception("Cannot find posts!");
 		}
 
@@ -158,5 +158,44 @@ trait Post
 		}
 
 		return $posts;
+	}
+
+	/**
+	 * @param  string $post_id
+	 * @return array
+	 */
+	public function getPost(string $post_id): array
+	{
+		/**
+		 * $post_id must be numeric or a string starts with "pfbid".
+		 */
+		if (!is_numeric($post_id) && substr($post_id, 0, 5) !== "pfbid") {
+			throw new \Exception("Invalid post id: \$post_id must be numeric or a string starts with \"pfbid\".");
+		}
+
+		$o = $this->http("/{$post_id}", "GET");
+
+		$t = $o["out"];
+		// file_put_contents("tmp.html", $o["out"]);
+		// $t = file_get_contents("tmp.html");
+
+		if (!preg_match("/<[^>]+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\".*?>(.+?)<[^>]+?id=\"ufi_.+?\">/", $t, $m)) {
+			throw new \Exception("Cannot parse post!");
+		}
+
+		$info = json_decode(html_decode($m[1]), true);
+		if (!preg_match("/<[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;\*s&quot;&#125;\"[^>]*?>(.+?)$/s", $m[2], $m)) {
+			throw new \Exception("Cannot parse post content!");
+		}
+
+		$m = get_inside_tag("<div[^>]*?>", "<\/div[^>]*?>", $m[1]);
+		if (!$m) {
+			throw new \Exception("Cannot parse post content! get_inside_tag()");
+		}
+
+		return [
+			"content" => full_html_clean($m),
+			"info" => $info
+		];
 	}
 }
