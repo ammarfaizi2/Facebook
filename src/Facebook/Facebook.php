@@ -205,6 +205,7 @@ class Facebook
 
 		if ($this->proxy) {
 			$curl_options[CURLOPT_PROXY] = $this->proxy;
+			$curl_options[CURLOPT_PROXYTYPE] = CURLPROXY_SOCKS5_HOSTNAME;
 		}
 
 		if ($this->cookie_string) {
