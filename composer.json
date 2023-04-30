@@ -2,9 +2,6 @@
     "name": "ammarfaizi2/facebook",
     "description": "Facebook library",
     "type": "library",
-    "require-dev": {
-        "phpunit/phpunit": "^10.1"
-    },
     "license": "GPL-2.0-only",
     "authors": [
         {
