@@ -56,7 +56,8 @@ out:
  */
 function full_html_clean(string $m): string
 {
-	$m = str_replace(["</p>", "<br />"], "\n", $m);
+	$m = str_replace(["<br />"], "\n", $m);
+	$m = str_replace(["</p>"], "\n\n", $m);
 	$m = strip_tags($m);
 	$m = html_decode($m);
 	$m = explode("\n", $m);
