@@ -28,12 +28,17 @@ class Facebook
 	private ?string $proxy = NULL;
 
 	/**
-	 *  @var string
+	 * @var string
 	 */
 	private string $session_dir;
 
 	/**
-	 *  @var string
+	 * @var string
+	 */
+	private string $cache_dir;
+
+	/**
+	 * @var string
 	 */
 	private string $cookie_file;
 
@@ -88,6 +93,45 @@ class Facebook
 		if (!is_readable($this->cookie_file)) {
 			throw new \Exception("Cookie file is not readable: {$this->cookie_file}");
 		}
+
+		$this->cache_dir = $this->session_dir."/cache";
+		if (!is_dir($this->cache_dir)) {
+			if (!mkdir($this->cache_dir, 0755, true)) {
+				throw new \Exception("Cannot create cache directory: {$this->cache_dir}");
+			}
+		}
+
+		if (!is_writable($this->cache_dir)) {
+			throw new \Exception("Cache directory is not writable: {$this->cache_dir}");
+		}
+
+		if (!is_readable($this->cache_dir)) {
+			throw new \Exception("Cache directory is not readable: {$this->cache_dir}");
+		}
+	}
+
+	/**
+	 * @param string $username
+	 * @return string
+	 */
+	public function getUserCacheDir(string $username): string
+	{
+		$ret = $this->cache_dir."/".$username;
+		if (!is_dir($ret)) {
+			if (!mkdir($ret, 0755, true)) {
+				throw new \Exception("Cannot create user cache directory: {$ret}");
+			}
+		}
+
+		if (!is_writable($ret)) {
+			throw new \Exception("User cache directory is not writable: {$ret}");
+		}
+
+		if (!is_readable($ret)) {
+			throw new \Exception("User cache directory is not readable: {$ret}");
+		}
+
+		return $ret;
 	}
 
 	/**

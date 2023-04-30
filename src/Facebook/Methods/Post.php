@@ -31,6 +31,20 @@ trait Post
 	}
 
 	/**
+	 * Cache timeline year links. 
+	 *
+	 * @param  string $username
+	 * @param  array  $years
+	 * @return void
+	 */
+	private function saveTimelineYears(string $username, array $years)
+	{
+		$years = json_encode($years, JSON_INTERNAL_FLAGS);
+		$dir = $this->getUserCacheDir($username);
+		file_put_contents("{$dir}/timeline_years.json", $years);
+	}
+
+	/**
 	 * @param  string $username
 	 * @return array
 	 */
@@ -42,6 +56,8 @@ trait Post
 		// file_put_contents("tmp.html", $o);
 		// $o = file_get_contents("tmp.html");
 
-		return $this->parseTimelineYears($o);
+		$o = $this->parseTimelineYears($o);
+		$this->saveTimelineYears($username, $o);
+		return $o;
 	}
 }

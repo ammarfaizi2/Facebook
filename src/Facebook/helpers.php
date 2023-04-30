@@ -4,6 +4,8 @@
  * Copyright (C) 2023  Ammar Faizi <ammarfaizi2@gnuweeb.org>
  */
 
+const JSON_INTERNAL_FLAGS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+
 /**
  * @param  string $str
  * @return string
