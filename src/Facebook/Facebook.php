@@ -10,6 +10,8 @@ require __DIR__."/helpers.php";
 
 class Facebook
 {
+	use Methods\Post;
+
 	/**
 	 * @var string
 	 */

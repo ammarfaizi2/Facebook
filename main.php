@@ -9,3 +9,6 @@ $fb = new Facebook($session_dir);
 $fb->setProxy($tor_proxy);
 $fb->setBaseUrl("https://mbasic.facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd.onion");
 $fb->setCookieString($cookie);
+
+$years = $fb->getTimelineYears("HonkaiStarRail.ID");
+var_dump($years);
