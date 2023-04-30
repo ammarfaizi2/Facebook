@@ -14,14 +14,22 @@ trait Post
 	 */
 	private function parseTimelineYears(string $o): array
 	{
-		if (!preg_match("/<div.+?id=\"structured_composer_async_container\".+?>(.+?)<\/body>/", $o, $m)) {
+		if (!preg_match("/<div.+?id=\"structured_composer_async_container\".*?>(.+?)<\/body>/", $o, $m)) {
 			throw new \Exception("Cannot find structured_composer_async_container!");
 		}
 
-		if (!preg_match_all("/<div class=\"[a-z]\"><a href=\"(.+?)\">(\d+)<\/a>/", $m[1], $m)) {
-			throw new \Exception("Cannot find posts!");
+		$o = $m[1];
+		if (preg_match_all("/<div class=\"[a-z]\"><a href=\"(.+?)\">(\d+)<\/a>/", $o, $m)) {
+			goto out;
 		}
 
+		if (preg_match_all("/<div class=\"[a-z]{3} [a-z]{3}\"><a href=\"(.+?)\">(?:<span>)?(\d+)(?:<\/span>)?<\/a>/", $o, $m)) {
+			goto out;
+		}
+
+		throw new \Exception("Cannot find timeline years!");
+
+	out:
 		$years = [];
 		foreach ($m[1] as $k => $v) {
 			$years[$m[2][$k]] = html_decode($v);
@@ -37,7 +45,7 @@ trait Post
 	 * @param  array  $years
 	 * @return void
 	 */
-	private function saveTimelineYears(string $username, array $years)
+	private function setCacheTimelineYears(string $username, array $years)
 	{
 		$years = json_encode($years, JSON_INTERNAL_FLAGS);
 		$dir = $this->getUserCacheDir($username);
@@ -50,14 +58,16 @@ trait Post
 	 */
 	public function getTimelineYears(string $username): array
 	{
-		$o = $this->http("/{$username}", "GET");
+		$o = $this->http("/{$username}?v=timeline", "GET");
 		$o = $o["out"];
 
 		// file_put_contents("tmp.html", $o);
 		// $o = file_get_contents("tmp.html");
 
 		$o = $this->parseTimelineYears($o);
-		$this->saveTimelineYears($username, $o);
+		if (count($o) > 0)
+			$this->setCacheTimelineYears($username, $o);
+
 		return $o;
 	}
 }

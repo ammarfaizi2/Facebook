@@ -12,3 +12,6 @@ $fb->setCookieString($cookie);
 
 $years = $fb->getTimelineYears("HonkaiStarRail.ID");
 var_dump($years);
+
+$posts = $fb->getTimelineYears("ThePandaSpot");
+var_dump($posts);
