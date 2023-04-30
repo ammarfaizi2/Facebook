@@ -46,6 +46,17 @@ function getTimelinePosts(Facebook $fb)
 	return 0;
 }
 
+function getPost(Facebook $fb)
+{
+	if (!isset($_GET["id"]) || !is_string($_GET["id"])) {
+		err(400, "Bad request: missing \"username\" string parameter");
+		return 0;
+	}
+
+	res(200, $fb->getPost($_GET["id"]));
+	return 0;
+}
+
 function handle_action(Facebook $fb, string $action)
 {
 	switch ($action) {
@@ -53,6 +64,8 @@ function handle_action(Facebook $fb, string $action)
 		return getTimelineYears($fb);
 	case "getTimelinePosts":
 		return getTimelinePosts($fb);
+	case "getPost":
+		return getPost($fb);
 	default:
 		err(400, "Bad request: unknown action");
 		return 0;
