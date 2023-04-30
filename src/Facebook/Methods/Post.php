@@ -66,8 +66,8 @@ trait Post
 		}
 
 		/*
-		* Max cache time: 10 minutes.
-		*/
+		 * Max cache time: 10 minutes.
+		 */
 		if (time() - filemtime($file) > 600) {
 			unlink($file);
 			return NULL;
