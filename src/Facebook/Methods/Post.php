@@ -87,17 +87,33 @@ trait Post
 	 */
 	public function getTimelineYears(string $username): array
 	{
-		$o = $this->http("/{$username}?v=timeline", "GET");
-		$o = $o["out"];
+		$username = urlencode($username);
+		$o = $this->http("/profile.php?id={$username}", "GET");
+
+		try {
+			$ret = $this->parseTimelineYears($o["out"]);
+			if (count($ret) > 0) {
+				$this->setCacheTimelineYears($username, $ret);
+				return $ret;
+			}
+		} catch (\Exception $e) {
+			// Pass
+		}
+
+		$new_url = $o["inf"]["url"];
+		$new_url = explode("?", $new_url, 2)[0];
+		$new_url = "{$new_url}?v=timeline";
+		$o = $this->http($new_url, "GET")["out"];
 
 		// file_put_contents("tmp.html", $o);
 		// $o = file_get_contents("tmp.html");
 
-		$o = $this->parseTimelineYears($o);
-		if (count($o) > 0)
-			$this->setCacheTimelineYears($username, $o);
+		$ret = $this->parseTimelineYears($o);
+		if (count($ret) > 0) {
+			$this->setCacheTimelineYears($username, $ret);
+		}
 
-		return $o;
+		return $ret;
 	}
 
 	/**

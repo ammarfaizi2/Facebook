@@ -16,14 +16,17 @@ $fb->setCookieString($cookie);
 // $years = $fb->getTimelineYears("ThePandaSpot");
 // var_dump($years);
 
-// $years = $fb->getTimelineYears("ammarfaizi2");
-// var_dump($years);
+$years = $fb->getTimelineYears("ammarfaizi2");
+var_dump($years);
 
-$posts = $fb->getTimelinePosts("HonkaiStarRail.ID");
-var_dump($posts);
+// $posts = $fb->getTimelinePosts("HonkaiStarRail.ID");
+// var_dump($posts);
 
-$posts = $fb->getTimelinePosts("ThePandaSpot");
-var_dump($posts);
+// $posts = $fb->getTimelinePosts("ThePandaSpot");
+// var_dump($posts);
 
-$posts = $fb->getTimelinePosts("ammarfaizi2");
-var_dump($posts);
+// $posts = $fb->getTimelinePosts("ammarfaizi2");
+// var_dump($posts);
+
+// $post = $fb->getPost("pfbid02hA3iHVhnqKrWksEjTEfxboBgB7jxpcErKcbBrsdL3MkLBz2cDphh2VWTXZ29fiMnl");
+// var_dump($post);
