@@ -19,6 +19,9 @@ $fb->setCookieString($cookie);
 // $years = $fb->getTimelineYears("ammarfaizi2");
 // var_dump($years);
 
+// $years = $fb->getTimelineYears("1111111111111111111111111111");
+// var_dump($years);
+
 // $posts = $fb->getTimelinePosts("HonkaiStarRail.ID");
 // var_dump($posts);
 

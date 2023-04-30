@@ -87,9 +87,13 @@ trait Post
 	 */
 	public function getTimelineYears(string $username): array
 	{
+		$username = trim($username);
+		if ($username === "") {
+			throw new \Exception("Username cannot be empty!");
+		}
+
 		$username = urlencode($username);
 		$o = $this->http("/profile.php?id={$username}", "GET");
-
 		try {
 			$ret = $this->parseTimelineYears($o["out"]);
 			if (count($ret) > 0) {
@@ -98,6 +102,10 @@ trait Post
 			}
 		} catch (\Exception $e) {
 			// Pass
+		}
+
+		if (isset($o["inf"]["redirect_count"]) && $o["inf"]["redirect_count"] == 0) {
+			throw new \Exception("Cannot find timeline years of this user!");
 		}
 
 		$new_url = $o["inf"]["url"];
