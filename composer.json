@@ -1,0 +1,21 @@
+{
+    "name": "ammarfaizi2/facebook",
+    "description": "Facebook library",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^10.1"
+    },
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "Ammar Faizi",
+            "email": "ammarfaizi2@gnuweeb.org"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-0": {
+            "Facebook\\": "src/"
+        }
+    }
+}

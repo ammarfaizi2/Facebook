@@ -1,0 +1,7 @@
+/vendor/
+/composer.lock
+/auth.php
+
+*.tmp
+*.log
+/tmp.html
