@@ -54,6 +54,35 @@ trait Post
 
 	/**
 	 * @param  string $username
+	 * @return array|null
+	 */
+	private function getCacheTimelineYears(string $username): ?array
+	{
+		$dir = $this->getUserCacheDir($username);
+		$file = "{$dir}/timeline_years.json";
+
+		if (!file_exists($file)) {
+			return NULL;
+		}
+
+		/*
+		* Max cache time: 10 minutes.
+		*/
+		if (time() - filemtime($file) > 600) {
+			unlink($file);
+			return NULL;
+		}
+
+		$years = json_decode(file_get_contents($file), true);
+		if (!is_array($years)) {
+			return NULL;
+		}
+
+		return $years;
+	}
+
+	/**
+	 * @param  string $username
 	 * @return array
 	 */
 	public function getTimelineYears(string $username): array
@@ -69,5 +98,49 @@ trait Post
 			$this->setCacheTimelineYears($username, $o);
 
 		return $o;
+	}
+
+	/**
+	 * Get timeline posts.
+	 *
+	 * @param  string $username
+	 * @param  int    $year
+	 * @return array
+	 */
+	public function getTimelinePosts(string $username, int $year = -1): array
+	{
+		$years = $this->getCacheTimelineYears($username);
+		if (!is_array($years)) {
+			$years = $this->getTimelineYears($username);
+		}
+
+		if ($year === -1) {
+			$year = max(array_keys($years));
+		}
+
+		if (!isset($years[$year])) {
+			throw new \Exception("Year {$year} not found!");
+		}
+
+		$o = $this->http($years[$year], "GET");
+		$o = $o["out"];
+
+		// file_put_contents("tmp.html", $o);
+		// $o = file_get_contents("tmp.html");
+
+		if (!preg_match("/<div.+?id=\"structured_composer_async_container\".*?>(.+?)<\/body>/", $o, $m)) {
+			throw new \Exception("Cannot find structured_composer_async_container!");
+		}
+
+		if (!preg_match_all("/<.+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\"/", $m[1], $m)) {
+			throw new \Exception("Cannot find posts!");
+		}
+
+		$posts = [];
+		foreach ($m[1] as $k => $v) {
+			$posts[] = json_decode(html_decode($v), true);
+		}
+
+		return $posts;
 	}
 }
