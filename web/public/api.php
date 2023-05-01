@@ -36,10 +36,10 @@ function getTimelinePosts(Facebook $fb)
 		return 0;
 	}
 
-	if (!isset($_GET["year"]) || !is_numeric($_GET["year"])) {
-		$year = -1;
-	} else {
+	if (isset($_GET["year"]) && is_numeric($_GET["year"])) {
 		$year = (int)$_GET["year"];
+	} else {
+		$year = -1;
 	}
 
 	res(200, $fb->getTimelinePosts($_GET["username"], $year));
