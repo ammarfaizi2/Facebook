@@ -42,7 +42,19 @@ function getTimelinePosts(Facebook $fb)
 		$year = -1;
 	}
 
-	res(200, $fb->getTimelinePosts($_GET["username"], $year));
+	if (isset($_GET["limit"]) && is_numeric($_GET["limit"])) {
+		$limit = (int)$_GET["limit"];
+	} else {
+		$limit = -1;
+	}
+
+	if (isset($_GET["take_content"])) {
+		$take_content = (bool)$_GET["take_content"];
+	} else {
+		$take_content = false;
+	}
+
+	res(200, $fb->getTimelinePosts($_GET["username"], $year, $take_content, $limit));
 	return 0;
 }
 
