@@ -5,6 +5,7 @@ require __DIR__."/../../vendor/autoload.php";
 use Facebook\Facebook;
 
 const JSON_FLAGS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+$content_is_json = true;
 
 function err(int $code, $msg)
 {
@@ -69,6 +70,66 @@ function getPost(Facebook $fb)
 	return 0;
 }
 
+function http_write_body_callback($curl, $data)
+{
+	echo $data;
+	return strlen($data);
+}
+
+function http_write_header_callback($curl, $data)
+{
+	$len = strlen($data);
+	if (preg_match("/^(content-|date|access-)/i", $data)) {
+		header($data);
+	}
+	return $len;
+}
+
+function httpGet(Facebook $fb)
+{
+	global $content_is_json;
+
+	if (!isset($_GET["url"]) || !is_string($_GET["url"])) {
+		err(400, "Bad request: missing \"url\" string parameter");
+		return 0;
+	}
+
+	$url = $_GET["url"];
+	$p = parse_url($url);
+	if ($p === false) {
+		err(400, "Bad request: invalid URL");
+		return 0;
+	}
+
+	if ($p["scheme"] !== "https") {
+		err(400, "Bad request: invalid URL scheme (only HTTPS is allowed)");
+		return 0;
+	}
+
+	if (!preg_match("/facebook|fbcdn/", $p["host"])) {
+		err(400, "Bad request: invalid URL host");
+		return 0;
+	}
+
+	if (isset($_GET["follow_redirect"])) {
+		$follow_redirect = (bool)$_GET["follow_redirect"];
+	} else {
+		$follow_redirect = true;
+	}
+	ob_get_clean();
+
+	$content_is_json = false;
+	$fb->http($url, "GET", [
+		"curl_options" => [
+			CURLOPT_RETURNTRANSFER => false,
+			CURLOPT_WRITEFUNCTION => "http_write_body_callback",
+			CURLOPT_HEADERFUNCTION => "http_write_header_callback",
+		],
+		"follow_redirect" => $follow_redirect,
+	]);
+	exit(0);
+}
+
 function handle_action(Facebook $fb, string $action)
 {
 	switch ($action) {
@@ -78,6 +139,8 @@ function handle_action(Facebook $fb, string $action)
 		return getTimelinePosts($fb);
 	case "getPost":
 		return getPost($fb);
+	case "httpGet":
+		return httpGet($fb);
 	default:
 		err(400, "Bad request: unknown action");
 		return 0;
@@ -86,8 +149,6 @@ function handle_action(Facebook $fb, string $action)
 
 function main()
 {
-	header("Content-Type: application/json");
-
 	require __DIR__."/../auth.php";
 	if (!isset($_GET["key"]) || $_GET["key"] !== $auth_key) {
 		err(401, "Unauthorized");
@@ -112,4 +173,9 @@ function main()
 	}
 }
 
+ob_start();
 main();
+if ($content_is_json) {
+	header("Content-Type: application/json");
+}
+echo ob_get_clean();

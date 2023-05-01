@@ -171,6 +171,14 @@ class Facebook
 	}
 
 	/**
+	 * @return string|null
+	 */
+	public function getProxy(): ?string
+	{
+		return $this->proxy;
+	}
+
+	/**
 	 * @param string $url
 	 * @param string $method
 	 * @param array  $options
@@ -219,6 +227,12 @@ class Facebook
 		if (isset($options["data"])) {
 			$curl_options[CURLOPT_POST] = true;
 			$curl_options[CURLOPT_POSTFIELDS] = $options["data"];
+		}
+
+		if (isset($options["curl_options"])) {
+			foreach ($options["curl_options"] as $k => $v) {
+				$curl_options[$k] = $v;
+			}
 		}
 
 		$o = $this->curl($url, $curl_options);
