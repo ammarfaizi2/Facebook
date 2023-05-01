@@ -201,6 +201,67 @@ trait Post
 	}
 
 	/**
+	 * @param string $o
+	 * @return ?array
+	 */
+	private function parseEmbeddedLink(string $o): ?array
+	{
+		if (!preg_match("/<div[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;H&quot;&#125;\"[^>]*>(.+?)<\/body>/", $o, $m)) {
+			return NULL;
+		}
+
+		$o = get_inside_tag("<div[^>]*?>", "<\/div[^>]*?>", $m[1]);
+		if (!$m) {
+			return NULL;
+		}
+
+		$desc = preg_replace("/<\/h\d>/", "\n", $o);
+		$desc = preg_replace("/<\/p>/", "\n", $desc);
+		$desc = html_decode(full_html_clean($desc));
+
+		/*
+		 * Parse the image preview.
+		 */
+		$img = NULL;
+		if (preg_match("/<img[^>]+?src=\"([^\"]+?)\"/", $o, $mm)) {
+			$img = [
+				"url" => html_decode($mm[1]),
+				"width" => NULL,
+				"height" => NULL,
+				"alt" => NULL
+			];
+
+			$m = $mm[0];
+			if (preg_match("/<img[^>]+?width=\"(\d+)\"/", $m, $mm)) {
+				$img["width"] = intval($mm[1]);
+			}
+
+			if (preg_match("/<img[^>]+?height=\"(\d+)\"/", $m, $mm)) {
+				$img["height"] = intval($mm[1]);
+			}
+
+			if (preg_match("/<img[^>]+?alt=\"([^\"]+?)\"/", $m, $mm)) {
+				$img["alt"] = html_decode($mm[1]);
+			}
+		}
+
+		/*
+		 * Parse the URL.
+		 */
+		$url = NULL;
+		if (preg_match("/<a[^>]+href=\"[^\"]+[\\&\\?]u=([^\\&\\?]+)[^\"]+\"[^>]+?>/", $o, $mm)) {
+			$url = html_decode($mm[1]);
+			$url = urldecode($url);
+		}
+
+		return [
+			"url" => $url,
+			"desc" => $desc,
+			"img_preview" => $img
+		];
+	}
+
+	/**
 	 * @param string &$o
 	 * @return ?array
 	 */
@@ -348,9 +409,10 @@ trait Post
 		/*
 		 * parsePostInfo() may change $o.
 		 */
+		$orig = $o;
 		$info = $this->parsePostInfo($o);
-
 		$content = $this->parsePostContent($o);
+		$content["embedded_link"] = $this->parseEmbeddedLink($orig);
 
 		return [
 			"content" => $content,
