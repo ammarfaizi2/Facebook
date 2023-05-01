@@ -168,14 +168,32 @@ trait Post
 		return $posts;
 	}
 
-	private function tryParseTextPost(string $o): ?array
+	/**
+	 * @param string &$o
+	 * @return ?array
+	 */
+	private function parsePostInfo(string &$o): ?array
 	{
 		if (!preg_match("/<[^>]+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\".*?>(.+?)<[^>]+?id=\"ufi_.+?\">/", $o, $m)) {
 			return NULL;
 		}
 
-		$info = json_decode(html_decode($m[1]), true);
-		if (!preg_match("/<[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;\*s&quot;&#125;\"[^>]*?>(.+?)$/s", $m[2], $m)) {
+		$ret = json_decode(html_decode($m[1]), true);
+		if (!is_array($ret)) {
+			return NULL;
+		}
+
+		$o = $m[2];
+		return $ret;
+	}
+
+	/**
+	 * @param string $o
+	 * @return ?array
+	 */
+	private function tryParseTextPost(string &$o): ?array
+	{
+		if (!preg_match("/<[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;\*s&quot;&#125;\"[^>]*?>(.+?)$/s", $o, $m)) {
 			return NULL;
 		}
 
@@ -185,11 +203,8 @@ trait Post
 		}
 
 		return [
-			"content" => [
-				"type" => "text",
-				"text" => full_html_clean($m),
-			],
-			"info" => $info
+			"type" => "text",
+			"text" => full_html_clean($m),
 		];
 	}
 
@@ -206,7 +221,7 @@ trait Post
 	 * @param  string $o
 	 * @return array
 	 */
-	private function parsePost(string $o): array
+	private function parsePostContent(string $o): array
 	{
 		$ret = $this->tryParseTextPost($o);
 		if ($ret) {
@@ -238,6 +253,16 @@ trait Post
 		// file_put_contents("tmp.html", $o);
 		// $o = file_get_contents("tmp.html");
 
-		return $this->parsePost($o);
+		/*
+		 * parsePostInfo() may change $o.
+		 */
+		$info = $this->parsePostInfo($o);
+
+		$content = $this->parsePostContent($o);
+
+		return [
+			"content" => $content,
+			"info"    => $info
+		];
 	}
 }
