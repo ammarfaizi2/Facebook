@@ -132,7 +132,7 @@ trait Post
 	 * @param  bool   $take_content
 	 * @return array
 	 */
-	public function getTimelinePosts(string $username, int $year = -1, bool $take_content = false): array
+	public function getTimelinePosts(string $username, int $year = -1, bool $take_content = false, int $limit = -1): array
 	{
 		$years = $this->getCacheTimelineYears($username);
 		if (!is_array($years)) {
@@ -161,8 +161,13 @@ trait Post
 			throw new \Exception("Cannot find posts!");
 		}
 
+		$i = 0;
 		$posts = [];
 		foreach ($m[1] as $k => $v) {
+			if ($limit !== -1 && $i >= $limit)
+				break;
+
+			$i++;
 			$info = json_decode(html_decode($v), true);
 			if (!is_array($info)) {
 				continue;
