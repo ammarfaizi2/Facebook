@@ -168,6 +168,59 @@ trait Post
 		return $posts;
 	}
 
+	private function tryParseTextPost(string $o): ?array
+	{
+		if (!preg_match("/<[^>]+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\".*?>(.+?)<[^>]+?id=\"ufi_.+?\">/", $o, $m)) {
+			return NULL;
+		}
+
+		$info = json_decode(html_decode($m[1]), true);
+		if (!preg_match("/<[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;\*s&quot;&#125;\"[^>]*?>(.+?)$/s", $m[2], $m)) {
+			return NULL;
+		}
+
+		$m = get_inside_tag("<div[^>]*?>", "<\/div[^>]*?>", $m[1]);
+		if (!$m) {
+			return NULL;
+		}
+
+		return [
+			"content" => [
+				"type" => "text",
+				"text" => full_html_clean($m),
+			],
+			"info" => $info
+		];
+	}
+
+	/**
+	 * @param  string $o
+	 * @return ?array
+	 */
+	private function tryParsePhotoPost(string $o): ?array
+	{
+		return NULL;
+	}
+
+	/**
+	 * @param  string $o
+	 * @return array
+	 */
+	private function parsePost(string $o): array
+	{
+		$ret = $this->tryParseTextPost($o);
+		if ($ret) {
+			return $ret;
+		}
+
+		$ret = $this->tryParsePhotoPost($o);
+		if ($ret) {
+			return $ret;
+		}
+
+		throw new \Exception("Cannot parse post!");
+	}
+
 	/**
 	 * @param  string $post_id
 	 * @return array
@@ -181,29 +234,10 @@ trait Post
 			throw new \Exception("Invalid post id: \$post_id must be numeric or a string starts with \"pfbid\".");
 		}
 
-		$o = $this->http("/{$post_id}", "GET");
+		$o = $this->http("/{$post_id}", "GET")["out"];
+		// file_put_contents("tmp.html", $o);
+		// $o = file_get_contents("tmp.html");
 
-		$t = $o["out"];
-		// file_put_contents("tmp.html", $o["out"]);
-		// $t = file_get_contents("tmp.html");
-
-		if (!preg_match("/<[^>]+?data-ft=\"([^\"]+?&quot;top_level_post_id&quot;[^\"]+?)\".*?>(.+?)<[^>]+?id=\"ufi_.+?\">/", $t, $m)) {
-			throw new \Exception("Cannot parse post!");
-		}
-
-		$info = json_decode(html_decode($m[1]), true);
-		if (!preg_match("/<[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;\*s&quot;&#125;\"[^>]*?>(.+?)$/s", $m[2], $m)) {
-			throw new \Exception("Cannot parse post content!");
-		}
-
-		$m = get_inside_tag("<div[^>]*?>", "<\/div[^>]*?>", $m[1]);
-		if (!$m) {
-			throw new \Exception("Cannot parse post content! get_inside_tag()");
-		}
-
-		return [
-			"content" => full_html_clean($m),
-			"info" => $info
-		];
+		return $this->parsePost($o);
 	}
 }
