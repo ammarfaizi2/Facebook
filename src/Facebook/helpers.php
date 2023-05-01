@@ -64,5 +64,5 @@ function full_html_clean(string $m): string
 	foreach ($m as &$c)
 		$c = trim($c);
 
-	return implode("\n", $m);
+	return trim(implode("\n", $m));
 }
