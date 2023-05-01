@@ -214,7 +214,67 @@ trait Post
 	 */
 	private function tryParsePhotoPost(string $o): ?array
 	{
-		return NULL;
+		$caption = NULL;
+		$photos = [];
+		$p = [
+			"url" => NULL,
+			"width" => NULL,
+			"height" => NULL,
+			"alt" => NULL,
+		];
+
+		/*
+		 * Parse photo URLs. Currently, only one photo is parsed.
+		 */
+		if (!preg_match("/<div style=\"text-align:center;\">(<img[^>]+>)/", $o, $m)) {
+			return NULL;
+		}
+
+		$oo = $m[1];
+
+		/*
+		 * Get width and height of the photo.
+		 */
+		if (preg_match("/width=\"(\d+)\" height=\"(\d+)\"/", $oo, $m)) {
+			$p["width"] = intval($m[1]);
+			$p["height"] = intval($m[2]);
+		}
+
+		/*
+		 * Get photo URL.
+		 */
+		if (preg_match("/src=\"([^\"]+)\"/", $oo, $m)) {
+			$p["url"] = html_decode($m[1]);
+		}
+
+		/*
+		 * Get photo alt.
+		 */
+		if (preg_match("/alt=\"([^\"]+)\"/", $oo, $m)) {
+			$p["alt"] = html_decode($m[1]);
+		}
+
+		$photos[] = $p;
+
+		/*
+		 * Parse photo caption.
+		 */
+		if (preg_match("/<[^>]+?data-ft=\"&#123;&quot;tn&quot;:&quot;,g&quot;&#125;\"[^>]*?>(.+?)$/s", $o, $m)) {
+			/*
+			 * Remove the poster name, don't include it in the caption.
+			 */
+			$m[1] = preg_replace("/<[^>]+?class=\"actor-link\".+?<\/a>/", "", $m[1]);
+
+			$m = get_inside_tag("<div[^>]*?>", "<\/div[^>]*?>", $m[1]);
+			if ($m)
+				$caption = full_html_clean($m);
+		}
+
+		return [
+			"type"   => "photo",
+			"text"   => $caption,
+			"photos" => $photos
+		];
 	}
 
 	/**

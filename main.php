@@ -40,3 +40,11 @@ $fb->setCookieString($cookie);
 // // photo
 // $post = $fb->getPost("283120917378331");
 // var_dump($post);
+
+// // photo
+// $post = $fb->getPost("277151727975250");
+// var_dump($post);
+
+// // photo
+$post = $fb->getPost("6407247892638151");
+var_dump($post);
