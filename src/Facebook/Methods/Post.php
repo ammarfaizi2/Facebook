@@ -192,8 +192,8 @@ trait Post
 			}
 
 			$posts[] = [
-				"info" => $info,
-				"content" => $content
+				"content" => $content,
+				"info" => $info
 			];
 		}
 
