@@ -28,8 +28,8 @@ $fb->setCookieString($cookie);
 // $posts = $fb->getTimelinePosts("ThePandaSpot");
 // var_dump($posts);
 
-// $posts = $fb->getTimelinePosts("ammarfaizi2");
-// var_dump($posts);
+$posts = $fb->getTimelinePosts("ammarfaizi2", -1, true);
+var_dump($posts);
 
 // $post = $fb->getPost("pfbid02hA3iHVhnqKrWksEjTEfxboBgB7jxpcErKcbBrsdL3MkLBz2cDphh2VWTXZ29fiMnl");
 // var_dump($post);
@@ -46,5 +46,5 @@ $fb->setCookieString($cookie);
 // var_dump($post);
 
 // // photo
-$post = $fb->getPost("6407247892638151");
-var_dump($post);
+// $post = $fb->getPost("6407247892638151");
+// var_dump($post);

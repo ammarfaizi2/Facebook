@@ -129,9 +129,10 @@ trait Post
 	 *
 	 * @param  string $username
 	 * @param  int    $year
+	 * @param  bool   $take_content
 	 * @return array
 	 */
-	public function getTimelinePosts(string $username, int $year = -1): array
+	public function getTimelinePosts(string $username, int $year = -1, bool $take_content = false): array
 	{
 		$years = $this->getCacheTimelineYears($username);
 		if (!is_array($years)) {
@@ -162,7 +163,33 @@ trait Post
 
 		$posts = [];
 		foreach ($m[1] as $k => $v) {
-			$posts[] = json_decode(html_decode($v), true);
+			$info = json_decode(html_decode($v), true);
+			if (!is_array($info)) {
+				continue;
+			}
+
+			if (!$take_content) {
+				$posts[] = [
+					"info" => $info,
+				];
+				continue;
+			}
+
+			/*
+			 * If $take_content is true. Visit the post to grab the
+			 * content as well.
+			 */
+			$content = NULL;
+			if (isset($info["top_level_post_id"])) {
+				$tmp = $this->getPost($info["top_level_post_id"]);
+				if (!empty($tmp["content"]))
+					$content = $tmp["content"];
+			}
+
+			$posts[] = [
+				"info" => $info,
+				"content" => $content
+			];
 		}
 
 		return $posts;
