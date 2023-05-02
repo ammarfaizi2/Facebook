@@ -255,7 +255,7 @@ trait Post
 		}
 
 		return [
-			"url" => $url,
+			"url" => $this->cleanURL($url),
 			"desc" => $desc,
 			"img_preview" => $img
 		];
@@ -337,7 +337,7 @@ trait Post
 		 * Get photo URL.
 		 */
 		if (preg_match("/src=\"([^\"]+)\"/", $oo, $m)) {
-			$p["url"] = html_decode($m[1]);
+			$p["url"] = $this->cleanURL(html_decode($m[1]));
 		}
 
 		/*
