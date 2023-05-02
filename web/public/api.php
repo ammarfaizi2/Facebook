@@ -194,7 +194,7 @@ function handle_url_proxy(Facebook $fb, string $url)
 		return 0;
 	}
 
-	$is_compressed = $url[0];
+	$is_compressed = ($url[0] === "\1");
 	$signature = substr($url, 1, 16);
 	$data = substr($url, 17);
 
