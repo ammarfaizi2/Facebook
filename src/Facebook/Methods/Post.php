@@ -225,7 +225,7 @@ trait Post
 		$img = NULL;
 		if (preg_match("/<img[^>]+?src=\"([^\"]+?)\"/", $o, $mm)) {
 			$img = [
-				"url" => html_decode($mm[1]),
+				"url" => $this->cleanURL(html_decode($mm[1])),
 				"width" => NULL,
 				"height" => NULL,
 				"alt" => NULL
