@@ -199,7 +199,11 @@ function handle_url_proxy(Facebook $fb, string $url)
 	$data = substr($url, 17);
 
 	if ($is_compressed) {
-		$data = gzinflate($data);
+		$data = @gzinflate($data);
+		if (!$data) {
+			err(404, "Not found");
+			return 0;
+		}
 	}
 
 	if ($signature !== md5($data.API_SECRET, true)) {
