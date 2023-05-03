@@ -154,8 +154,16 @@ function handle_action(Facebook $fb, string $action)
 
 function rewriteOnionURL(?string $str): ?string
 {
-	if (is_null($str))
+	if (!is_string($str))
 		return NULL;
+
+	/**
+	 * Don't rewrite non Facebook onion URL.
+	 */
+	$p = parse_url($str);
+	if (!preg_match("/(facebook|fbcdn)[\w\d]+\.onion$/i", $p["host"])) {
+		return $str;
+	}
 
 	$signature = md5($str.API_SECRET, true);
 
