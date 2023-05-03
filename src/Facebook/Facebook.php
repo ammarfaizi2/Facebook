@@ -53,6 +53,11 @@ class Facebook
 	private $ch;
 
 	/**
+	 * @var callable
+	 */
+	private $rewrite_url_func = NULL;
+
+	/**
 	 * @param string $session_dir
 	 */
 	public function __construct(string $session_dir)
@@ -258,5 +263,28 @@ class Facebook
 			"inf" => curl_getinfo($this->ch),
 		];
 		return $ret;
+	}
+
+	/**
+	 * @param callable $func
+	 * @return void
+	 */
+	public function registerRewriteURLCallback(callable $func): void
+	{
+		$this->rewrite_url_callback = $func;
+	}
+
+	/**
+	 * @param ?string $url
+	 * @return string
+	 */
+	public function cleanURL(?string $url): ?string
+	{
+		if ($this->rewrite_url_callback) {
+			$func = $this->rewrite_url_callback;
+			return $func($url);
+		}
+
+		return $url;
 	}
 }

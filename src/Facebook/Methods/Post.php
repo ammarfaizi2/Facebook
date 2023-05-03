@@ -225,7 +225,7 @@ trait Post
 		$img = NULL;
 		if (preg_match("/<img[^>]+?src=\"([^\"]+?)\"/", $o, $mm)) {
 			$img = [
-				"url" => html_decode($mm[1]),
+				"url" => $this->cleanURL(html_decode($mm[1])),
 				"width" => NULL,
 				"height" => NULL,
 				"alt" => NULL
@@ -255,7 +255,7 @@ trait Post
 		}
 
 		return [
-			"url" => $url,
+			"url" => $this->cleanURL($url),
 			"desc" => $desc,
 			"img_preview" => $img
 		];
@@ -337,7 +337,7 @@ trait Post
 		 * Get photo URL.
 		 */
 		if (preg_match("/src=\"([^\"]+)\"/", $oo, $m)) {
-			$p["url"] = html_decode($m[1]);
+			$p["url"] = $this->cleanURL(html_decode($m[1]));
 		}
 
 		/*
