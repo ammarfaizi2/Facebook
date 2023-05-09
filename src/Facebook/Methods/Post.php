@@ -96,6 +96,12 @@ trait Post
 	 */
 	public function getTimelinePosts(string $username, int $year = -1, bool $take_content = false, int $limit = -1): array
 	{
+		$cacheKey = __METHOD__.$username.$year.($take_content ? 1 : 0).sprintf("%010d", $limit);
+
+		$posts = $this->getCache($cacheKey);
+		if (is_array($posts))
+			return $posts;
+
 		$years = $this->getTimelineYears($username);
 		if ($year === -1) {
 			$year = max(array_keys($years));
@@ -155,6 +161,7 @@ trait Post
 			];
 		}
 
+		$this->setCache($cacheKey, $posts);
 		return $posts;
 	}
 
