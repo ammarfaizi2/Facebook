@@ -116,30 +116,6 @@ class Facebook
 	}
 
 	/**
-	 * @param string $username
-	 * @return string
-	 */
-	public function getUserCacheDir(string $username): string
-	{
-		$ret = $this->cache_dir."/".$username;
-		if (!is_dir($ret)) {
-			if (!mkdir($ret, 0755, true)) {
-				throw new \Exception("Cannot create user cache directory: {$ret}");
-			}
-		}
-
-		if (!is_writable($ret)) {
-			throw new \Exception("User cache directory is not writable: {$ret}");
-		}
-
-		if (!is_readable($ret)) {
-			throw new \Exception("User cache directory is not readable: {$ret}");
-		}
-
-		return $ret;
-	}
-
-	/**
 	 * @param string $user_agent
 	 * @return void
 	 */
