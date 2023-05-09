@@ -353,6 +353,13 @@ trait Post
 	 */
 	public function getPost(string $post_id): array
 	{
+		$cacheKey = __METHOD__.$post_id;
+
+		$ret = $this->getCache($cacheKey);
+		if ($ret) {
+			return $ret;
+		}
+
 		/**
 		 * $post_id must be numeric or a string starts with "pfbid".
 		 */
@@ -372,9 +379,11 @@ trait Post
 		$content = $this->parsePostContent($o);
 		$content["embedded_link"] = $this->parseEmbeddedLink($orig);
 
-		return [
+		$ret = [
 			"content" => $content,
 			"info"    => $info
 		];
+		$this->setCache($cacheKey, $ret);
+		return $ret;
 	}
 }
