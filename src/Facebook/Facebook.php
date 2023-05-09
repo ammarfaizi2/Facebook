@@ -287,4 +287,49 @@ class Facebook
 
 		return $url;
 	}
+
+	/**
+	 * @param  string $key
+	 * @param  mixed  $data
+	 * @param  int    $expire
+	 * @return void
+	 */
+	private function setCache(string $key, $data, int $expire = 600): void
+	{
+		$key = str_replace(["/", "\\"], "_", $key);
+		$data = [
+			"exp"  => time() + $expire,
+			"data" => $data
+		];
+		$data = json_encode($data, JSON_INTERNAL_FLAGS);
+		if (!is_dir($this->cache_dir)) {
+			mkdir($this->cache_dir, 0777, true);
+			if (!is_dir($this->cache_dir)) {
+				throw new \Exception("Unable to create cache directory: {$this->cache_dir}");
+			}
+		}
+		file_put_contents("{$this->cache_dir}/{$key}.json", $data);
+	}
+
+	/**
+	 * @param  string $key
+	 * @return mixed
+	 */
+	private function getCache(string $key)
+	{
+		$key = str_replace(["/", "\\"], "_", $key);
+		$file = "{$this->cache_dir}/{$key}.json";
+
+		if (!file_exists($file)) {
+			return NULL;
+		}
+
+		$data = json_decode(file_get_contents($file), true);
+		if (!isset($data["exp"]) || !isset($data["data"])) {
+			unlink($file);
+			return NULL;
+		}
+
+		return $data["data"];
+	}
 }
