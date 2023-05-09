@@ -39,65 +39,27 @@ trait Post
 	}
 
 	/**
-	 * Cache timeline year links. 
-	 *
-	 * @param  string $username
-	 * @param  array  $years
-	 * @return void
-	 */
-	private function setCacheTimelineYears(string $username, array $years)
-	{
-		$years = json_encode($years, JSON_INTERNAL_FLAGS);
-		$dir = $this->getUserCacheDir($username);
-		file_put_contents("{$dir}/timeline_years.json", $years);
-	}
-
-	/**
-	 * @param  string $username
-	 * @return array|null
-	 */
-	private function getCacheTimelineYears(string $username): ?array
-	{
-		$dir = $this->getUserCacheDir($username);
-		$file = "{$dir}/timeline_years.json";
-
-		if (!file_exists($file)) {
-			return NULL;
-		}
-
-		/*
-		 * Max cache time: 10 minutes.
-		 */
-		if (time() - filemtime($file) > 600) {
-			unlink($file);
-			return NULL;
-		}
-
-		$years = json_decode(file_get_contents($file), true);
-		if (!is_array($years)) {
-			return NULL;
-		}
-
-		return $years;
-	}
-
-	/**
 	 * @param  string $username
 	 * @return array
 	 */
 	public function getTimelineYears(string $username): array
 	{
+		$cacheKey = __METHOD__.$username;
 		$username = trim($username);
 		if ($username === "") {
 			throw new \Exception("Username cannot be empty!");
 		}
+
+		$years = $this->getCache($cacheKey);
+		if (is_array($years))
+			return $years;
 
 		$username = urlencode($username);
 		$o = $this->http("/profile.php?id={$username}", "GET");
 		try {
 			$ret = $this->parseTimelineYears($o["out"]);
 			if (count($ret) > 0) {
-				$this->setCacheTimelineYears($username, $ret);
+				$this->setCache($cacheKey, $ret);
 				return $ret;
 			}
 		} catch (\Exception $e) {
@@ -118,7 +80,7 @@ trait Post
 
 		$ret = $this->parseTimelineYears($o);
 		if (count($ret) > 0) {
-			$this->setCacheTimelineYears($username, $ret);
+			$this->setCache($cacheKey, $ret);
 		}
 
 		return $ret;
@@ -134,11 +96,13 @@ trait Post
 	 */
 	public function getTimelinePosts(string $username, int $year = -1, bool $take_content = false, int $limit = -1): array
 	{
-		$years = $this->getCacheTimelineYears($username);
-		if (!is_array($years)) {
-			$years = $this->getTimelineYears($username);
-		}
+		$cacheKey = __METHOD__.$username.$year.($take_content ? 1 : 0).sprintf("%010d", $limit);
 
+		$posts = $this->getCache($cacheKey);
+		if (is_array($posts))
+			return $posts;
+
+		$years = $this->getTimelineYears($username);
 		if ($year === -1) {
 			$year = max(array_keys($years));
 		}
@@ -197,6 +161,7 @@ trait Post
 			];
 		}
 
+		$this->setCache($cacheKey, $posts);
 		return $posts;
 	}
 
@@ -395,6 +360,13 @@ trait Post
 	 */
 	public function getPost(string $post_id): array
 	{
+		$cacheKey = __METHOD__.$post_id;
+
+		$ret = $this->getCache($cacheKey);
+		if ($ret) {
+			return $ret;
+		}
+
 		/**
 		 * $post_id must be numeric or a string starts with "pfbid".
 		 */
@@ -414,9 +386,11 @@ trait Post
 		$content = $this->parsePostContent($o);
 		$content["embedded_link"] = $this->parseEmbeddedLink($orig);
 
-		return [
+		$ret = [
 			"content" => $content,
 			"info"    => $info
 		];
+		$this->setCache($cacheKey, $ret);
+		return $ret;
 	}
 }

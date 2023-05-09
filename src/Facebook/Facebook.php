@@ -116,30 +116,6 @@ class Facebook
 	}
 
 	/**
-	 * @param string $username
-	 * @return string
-	 */
-	public function getUserCacheDir(string $username): string
-	{
-		$ret = $this->cache_dir."/".$username;
-		if (!is_dir($ret)) {
-			if (!mkdir($ret, 0755, true)) {
-				throw new \Exception("Cannot create user cache directory: {$ret}");
-			}
-		}
-
-		if (!is_writable($ret)) {
-			throw new \Exception("User cache directory is not writable: {$ret}");
-		}
-
-		if (!is_readable($ret)) {
-			throw new \Exception("User cache directory is not readable: {$ret}");
-		}
-
-		return $ret;
-	}
-
-	/**
 	 * @param string $user_agent
 	 * @return void
 	 */
@@ -286,5 +262,80 @@ class Facebook
 		}
 
 		return $url;
+	}
+
+	/**
+	 * @param  string $key
+	 * @param  mixed  $data
+	 * @param  int    $expire
+	 * @return void
+	 */
+	private function setCache(string $key, $data, int $expire = 600): void
+	{
+		$key = str_replace(["/", "\\"], "_", $key);
+		$data = [
+			"exp"  => time() + $expire,
+			"data" => $data
+		];
+		$data = json_encode($data, JSON_INTERNAL_FLAGS);
+		if (!is_dir($this->cache_dir)) {
+			mkdir($this->cache_dir, 0777, true);
+			if (!is_dir($this->cache_dir)) {
+				throw new \Exception("Unable to create cache directory: {$this->cache_dir}");
+			}
+		}
+		file_put_contents("{$this->cache_dir}/{$key}.json", $data);
+	}
+
+	/**
+	 * @param  string $key
+	 * @return mixed
+	 */
+	private function getCache(string $key)
+	{
+		$key = str_replace(["/", "\\"], "_", $key);
+		$file = "{$this->cache_dir}/{$key}.json";
+
+		if (!file_exists($file)) {
+			return NULL;
+		}
+
+		$data = json_decode(file_get_contents($file), true);
+		if (!isset($data["exp"]) || !isset($data["data"])) {
+			unlink($file);
+			return NULL;
+		}
+
+		return $data["data"];
+	}
+
+	/**
+	 * @return void
+	 */
+	public function clearExpiredCaches(): void
+	{
+		$scan = scandir($this->cache_dir);
+		foreach ($scan as $file) {
+			$file = "{$this->cache_dir}/{$file}";
+			if (!is_file($file)) {
+				continue;
+			}
+
+			$data = @file_get_contents($file);
+			if (!$data) {
+				unlink($file);
+				continue;
+			}
+
+			$data = @json_decode($data, true);
+			if (!isset($data["exp"]) || !isset($data["data"])) {
+				unlink($file);
+				continue;
+			}
+
+			if ($data["exp"] < time()) {
+				unlink($file);
+			}
+		}
 	}
 }
