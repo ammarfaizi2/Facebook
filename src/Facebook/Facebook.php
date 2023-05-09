@@ -308,4 +308,34 @@ class Facebook
 
 		return $data["data"];
 	}
+
+	/**
+	 * @return void
+	 */
+	public function clearExpiredCaches(): void
+	{
+		$scan = scandir($this->cache_dir);
+		foreach ($scan as $file) {
+			$file = "{$this->cache_dir}/{$file}";
+			if (!is_file($file)) {
+				continue;
+			}
+
+			$data = @file_get_contents($file);
+			if (!$data) {
+				unlink($file);
+				continue;
+			}
+
+			$data = @json_decode($data, true);
+			if (!isset($data["exp"]) || !isset($data["data"])) {
+				unlink($file);
+				continue;
+			}
+
+			if ($data["exp"] < time()) {
+				unlink($file);
+			}
+		}
+	}
 }
