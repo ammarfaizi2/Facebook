@@ -306,6 +306,11 @@ class Facebook
 			return NULL;
 		}
 
+		if ($data["exp"] < time()) {
+			unlink($file);
+			return NULL;
+		}
+
 		return $data["data"];
 	}
 
