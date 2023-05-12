@@ -219,6 +219,16 @@ function handle_url_proxy(Facebook $fb, string $url)
 		return 0;
 	}
 
+	if (filter_var($data, FILTER_VALIDATE_URL)) {
+		/**
+		 * Don't use proxy for non onion URL.
+		 */
+		$u = parse_url($data);
+		if (!preg_match("/\\.onion$/i", $u["host"])) {
+			$fb->setProxy(NULL);
+		}
+	}
+
 	if (!fb_http_get($fb, $data))
 		exit(0);
 }
