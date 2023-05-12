@@ -165,6 +165,14 @@ function rewriteOnionURL(?string $str): ?string
 		return $str;
 	}
 
+	/**
+	 * Don't use Facebook onion CDN for performance reasons.
+	 */
+	if (preg_match("/^scontent.xx.face.+?\.onion$/", $p["host"])) {
+		$p["host"] = "scontent.xx.fbcdn.net";
+		return build_url($p);
+	}
+
 	$signature = md5($str.API_SECRET, true);
 
 	/**
