@@ -165,6 +165,14 @@ function rewriteOnionURL(?string $str): ?string
 		return $str;
 	}
 
+	/**
+	 * Don't use Facebook onion CDN for performance reasons.
+	 */
+	if (preg_match("/^scontent.xx.face.+?\.onion$/", $p["host"])) {
+		$p["host"] = "scontent.xx.fbcdn.net";
+		return build_url($p);
+	}
+
 	$signature = md5($str.API_SECRET, true);
 
 	/**
@@ -217,6 +225,16 @@ function handle_url_proxy(Facebook $fb, string $url)
 	if ($signature !== md5($data.API_SECRET, true)) {
 		err(400, "Invalid signature");
 		return 0;
+	}
+
+	if (filter_var($data, FILTER_VALIDATE_URL)) {
+		/**
+		 * Don't use proxy for non onion URL.
+		 */
+		$u = parse_url($data);
+		if (!preg_match("/\\.onion$/i", $u["host"])) {
+			$fb->setProxy(NULL);
+		}
 	}
 
 	if (!fb_http_get($fb, $data))
