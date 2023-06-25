@@ -281,6 +281,11 @@ trait Post
 			"alt" => NULL,
 		];
 
+
+		if (preg_match("/\/photo.php\?fbid=(\d+)/", $o, $m)) {
+			$o = $this->http("/photo.php?fbid={$m[1]}", "GET")["out"];
+		}
+
 		/*
 		 * Parse photo URLs. Currently, only one photo is parsed.
 		 */
@@ -341,12 +346,12 @@ trait Post
 	 */
 	private function parsePostContent(string $o): array
 	{
-		$ret = $this->tryParseTextPost($o);
+		$ret = $this->tryParsePhotoPost($o);
 		if ($ret) {
 			return $ret;
 		}
 
-		$ret = $this->tryParsePhotoPost($o);
+		$ret = $this->tryParseTextPost($o);
 		if ($ret) {
 			return $ret;
 		}
