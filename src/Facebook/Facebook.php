@@ -23,6 +23,11 @@ class Facebook
 	private string $base_url = "https://mbasic.facebook.com";
 
 	/**
+	 * @var string
+	 */
+	private string $orig_base_url;
+
+	/**
 	 * @var string|null
 	 */
 	private ?string $proxy = NULL;
@@ -65,6 +70,7 @@ class Facebook
 		$this->session_dir = $session_dir;
 		$this->buildSession();
 		$this->ch = curl_init();
+		$this->orig_base_url = $this->base_url;
 	}
 
 	/**
@@ -130,7 +136,16 @@ class Facebook
 	 */
 	public function setBaseUrl(string $base_url): void
 	{
+		$this->orig_base_url = $this->base_url;
 		$this->base_url = $base_url;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getOrigBaseUrl(): string
+	{
+		return $this->orig_base_url;
 	}
 
 	/**
